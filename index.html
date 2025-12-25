@@ -481,7 +481,7 @@
         function getStatusBadge(status) {
             const statusMap = {
                 pending: { text: 'Chờ xác nhận', class: 'status-pending' },
-                completed: { text: 'Hoàn thành', class: 'status-completed' }
+                done: { text: 'Đã xác nhận', class: 'status-completed' }
             };
             const s = statusMap[status] || { text: status, class: 'status-pending' };
             return `<span class="status-badge ${s.class}">${s.text}</span>`;
@@ -504,7 +504,7 @@
                 document.getElementById('totalOrders').textContent = orders.length;
                 document.getElementById('orderChange').innerHTML = `<span style="color: #6b7280;">Tất cả thời gian</span>`;
 
-                const completedOrders = orders.filter(o => o.status === 'completed');
+                const completedOrders = orders.filter(o => o.status === 'done');
                 const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total_price, 0);
                 document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
                 document.getElementById('revenueChange').innerHTML = `<span class="stat-change positive">✓ ${completedOrders.length} đơn hoàn thành</span>`;

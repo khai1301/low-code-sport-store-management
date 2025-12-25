@@ -573,6 +573,7 @@
 
         let products = [];
         let selectedProducts = [];
+        let allOrders = []; // Cache all orders data
 
         function showAlert(message, type) {
             alert.textContent = message;
@@ -596,8 +597,7 @@
         function getStatusBadge(status) {
             const statusMap = {
                 pending: { text: 'Chờ xác nhận', class: 'status-pending' },
-                confirmed: { text: 'Đã xác nhận', class: 'status-confirmed' },
-                completed: { text: 'Hoàn thành', class: 'status-completed' }
+                done: { text: 'Đã xác nhận', class: 'status-confirmed' }
             };
             const s = statusMap[status] || { text: status, class: 'status-pending' };
             return `<span class="status-badge ${s.class}">${s.text}</span>`;
@@ -606,9 +606,9 @@
         function updateStats(orders) {
             const totalOrders = orders.length;
             const pendingOrders = orders.filter(o => o.status === 'pending').length;
-            const completedOrders = orders.filter(o => o.status === 'completed').length;
+            const completedOrders = orders.filter(o => o.status === 'done').length;
             const totalRevenue = orders
-                .filter(o => o.status === 'completed')
+                .filter(o => o.status === 'done')
                 .reduce((sum, o) => sum + o.total_price, 0);
 
             document.getElementById('totalOrders').textContent = totalOrders;
@@ -628,6 +628,11 @@
                 if (!response.ok) throw new Error('Không thể tải dữ liệu');
 
                 const orders = await response.json();
+
+                // Cache orders data for use in viewOrderDetail
+                if (!phone) {
+                    allOrders = orders;
+                }
 
                 if (orders.length === 0) {
                     tableBody.innerHTML = `
@@ -767,10 +772,54 @@
 
         async function viewOrderDetail(orderCode) {
             try {
-                const response = await fetch(`${API_URL}/orders/code/${orderCode}`);
-                if (!response.ok) throw new Error('Không thể tải chi tiết đơn hàng');
+                // First, try to find order in cached data
+                let order = allOrders.find(o => o.order_code === orderCode);
 
-                const order = await response.json();
+                // If not found in cache, fetch from API
+                if (!order) {
+                    const response = await fetch(`${API_URL}/orders`);
+                    if (!response.ok) throw new Error('Không thể tải chi tiết đơn hàng');
+                    const orders = await response.json();
+                    order = orders.find(o => o.order_code === orderCode);
+                    if (!order) throw new Error('Không tìm thấy đơn hàng');
+                }
+
+                // Build order items HTML
+                let itemsHtml = '';
+                if (order.items && order.items.length > 0) {
+                    itemsHtml = `
+                        <h3 style="color: #667eea; margin-bottom: 15px;">Sản phẩm</h3>
+                        <div style="margin-bottom: 20px;">
+                            ${order.items.map((item, index) => `
+                                <div style="padding: 15px; background: #f9fafb; border-radius: 8px; margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; color: #1f2937; margin-bottom: 5px;">
+                                                ${index + 1}. ${item.product.name}
+                                            </div>
+                                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 3px;">
+                                                Size: ${item.size} | Số lượng: ${item.quantity}
+                                            </div>
+                                            <div style="font-size: 13px; color: #6b7280;">
+                                                Đơn giá: ${formatCurrency(item.price)}
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right; font-weight: 600; color: #667eea;">
+                                            ${formatCurrency(item.price * item.quantity)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Build confirm button (only for pending orders)
+                const confirmButtonHtml = order.status === 'pending' ? `
+                    <button class="btn btn-primary" onclick="confirmOrder(${order.id}, '${order.order_code}')" id="confirmOrderBtn" style="margin-top: 15px;">
+                        <span id="confirmBtnText">✓ Xác nhận đơn hàng</span>
+                    </button>
+                ` : '';
 
                 const detailHtml = `
                     <div style="margin-bottom: 20px;">
@@ -783,7 +832,11 @@
                         <p><strong>Ngày tạo:</strong> ${formatDate(order.created_at)}</p>
                     </div>
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                        ${itemsHtml}
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
                         <h3 style="color: #667eea;">Tổng tiền: ${formatCurrency(order.total_price)}</h3>
+                        ${confirmButtonHtml}
                     </div>
                 `;
 
@@ -796,6 +849,42 @@
 
         function closeDetailModal() {
             document.getElementById('detailModal').style.display = 'none';
+        }
+
+        async function confirmOrder(orderId, orderCode) {
+            const confirmBtn = document.getElementById('confirmOrderBtn');
+            const btnText = document.getElementById('confirmBtnText');
+
+            if (!confirm(`Bạn có chắc chắn muốn xác nhận đơn hàng ${orderCode}?`)) {
+                return;
+            }
+
+            try {
+                confirmBtn.disabled = true;
+                btnText.innerHTML = '<span class="loading"></span>Đang xử lý...';
+
+                const response = await fetch(`${API_URL}/orders/${orderId}/confirm`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    showAlert(`✅ Đã xác nhận đơn hàng ${orderCode} thành công!`, 'success');
+                    closeDetailModal();
+                    loadOrders(); // Refresh the orders list
+                } else {
+                    const error = await response.json();
+                    showAlert(`❌ Lỗi: ${error.message || 'Không thể xác nhận đơn hàng'}`, 'error');
+                    confirmBtn.disabled = false;
+                    btnText.innerHTML = '✓ Xác nhận đơn hàng';
+                }
+            } catch (error) {
+                showAlert(`❌ Lỗi kết nối: ${error.message}`, 'error');
+                confirmBtn.disabled = false;
+                btnText.innerHTML = '✓ Xác nhận đơn hàng';
+            }
         }
 
         // Search orders by phone
