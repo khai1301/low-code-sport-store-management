@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập Liệu Sản Phẩm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: #f3f4f6;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 50px 30px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            color: #1f2937;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: #f9fafb;
+            outline: none;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 12px auto;
+            cursor: pointer;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #notification {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .container {
+                padding: 30px 20px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">📝 Form Nhập Liệu</div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Tổng quan</a>
+                <a href="product-management.html" class="nav-link">Sản phẩm</a>
+                <a href="order-management.html" class="nav-link">Đơn hàng</a>
+                <a href="formInput.html" class="nav-link">Đăng bài facebook</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Thêm Sản Phẩm</h1>
+        <p class="page-subtitle">Form nhập liệu nhanh cho sản phẩm</p>
+
+        <div class="card">
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Tên sản phẩm</label>
+                    <input type="text" id="productName" placeholder="Ví dụ: Giày Mizuno Morelia..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand">Hãng sản xuất</label>
+                    <select id="brand" required>
+                        <option value="" disabled selected>Chọn hãng...</option>
+                        <option value="Mizuno">Mizuno</option>
+                        <option value="Nike">Nike</option>
+                        <option value="Adidas">Adidas</option>
+                        <option value="Puma">Puma</option>
+                        <option value="Kamito">Kamito</option>
+                        <option value="Zocker">Zocker</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Giá bán</label>
+                    <input type="text" id="price" placeholder="Ví dụ: 500k/1 đôi" required>
+                </div>
+
+                <button type="submit" id="submitBtn">Tạo Sản Phẩm</button>
+            </form>
+            <div id="notification"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('productForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const notification = document.getElementById('notification');
+
+        const webhookUrl = 'https://team16.io.vn/webhook-test/f17df318-5c27-49fc-a73d-8ac95183ecda';
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            // 1. Hiệu ứng loading
+            setLoading(true);
+
+            // 2. Lấy dữ liệu
+            const productName = document.getElementById('productName').value;
+            const brand = document.getElementById('brand').value;
+            const price = document.getElementById('price').value;
+
+            const data = {
+                "productName": productName,
+                "brand": brand,
+                "price": price,
+            };
+
+            try {
+                // 3. Gửi Request
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showNotification('Thành công! Dữ liệu đã được gửi.', 'success');
+                    form.reset(); // Reset form
+                    document.getElementById('brand').value = ""; // Reset dropdown về placeholder
+                } else {
+                    showNotification('Lỗi: Server không phản hồi.', 'error');
+                }
+            } catch (error) {
+                showNotification('Lỗi kết nối mạng!', 'error');
+                console.error(error);
+            } finally {
+                // 4. Tắt loading
+                setLoading(false);
+            }
+        });
+
+        // Hàm điều khiển nút bấm
+        function setLoading(isLoading) {
+            if (isLoading) {
+                submitBtn.textContent = 'Đang gửi...';
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.textContent = 'Tạo Sản Phẩm';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Hàm hiện thông báo
+        function showNotification(msg, type) {
+            notification.textContent = msg;
+            notification.className = type; // set class success hoặc error
+            notification.style.display = 'block';
+
+            // Animation fade in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+            }, 10);
+
+            // Tự động ẩn sau 3 giây
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => { notification.style.display = 'none'; }, 500);
+            }, 3000);
+        }
+    </script>
+
+</body>
+
+</html>
